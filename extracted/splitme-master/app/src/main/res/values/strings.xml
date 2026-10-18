@@ -4,9 +4,9 @@
     <string name="label_on">Split screen on</string>
     <string name="label_off">Split screen</string>
     <string name="accessibility_service_name">SplitMe split-screen shortcut</string>
-    <string name="description">Allows SplitMe to request Android's system split-screen toggle when you tap its Quick Settings tile. It does not read screen content or collect data.</string>
+    <string name="description">Allows SplitMe to request the Android system split-screen toggle when you tap its Quick Settings tile. It does not read screen content or collect data.</string>
     <string name="summary">Trigger the system split-screen action</string>
-    <string name="accessibility_required">Enable the SplitMe accessibility service to use the Quick Settings tile. The service is used only to request Android's split-screen toggle.</string>
+    <string name="accessibility_required">Enable the SplitMe accessibility service to use the Quick Settings tile. The service is used only to request the Android split-screen toggle.</string>
     <string name="open_accessibility_settings">Open Accessibility Settings</string>
-    <string name="setup_instructions">Setup:&#10;1. Enable the SplitMe accessibility service below.&#10;2. Open Quick Settings by swiping down twice.&#10;3. Tap Edit, find Split Screen, and add the tile.&#10;4. Open an app, tap the Split Screen tile, then use your phone's system UI to choose the second app if prompted.&#10;&#10;Android/HyperOS decides whether the split-screen action is available. This app cannot force unsupported apps into split-screen.</string>
+    <string name="setup_instructions">Setup:&#10;1. Enable the SplitMe accessibility service below.&#10;2. Open Quick Settings by swiping down twice.&#10;3. Tap Edit, find Split Screen, and add the tile.&#10;4. Open an app, tap the Split Screen tile, then use the phone system UI to choose the second app if prompted.&#10;&#10;Android and HyperOS decide whether the split-screen action is available. This app cannot force unsupported apps into split-screen.</string>
 </resources>
