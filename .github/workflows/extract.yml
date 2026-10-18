@@ -2,6 +2,9 @@ name: Extract ZIP
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/extract.yml"
 
 permissions:
   contents: write
@@ -9,23 +12,38 @@ permissions:
 jobs:
   extract:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download ZIP
-        run: curl -fL -o SplitMe-Modern-source.zip https://github.com/patelaryan567567-prog/Split-screen-/raw/main/SplitMe-Modern-source.zip
+      - name: Download source ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error \
+            "https://raw.githubusercontent.com/patelaryan567567-prog/Split-screen-/main/SplitMe-Modern-source.zip" \
+            --output "$RUNNER_TEMP/SplitMe-Modern-source.zip"
+          test -s "$RUNNER_TEMP/SplitMe-Modern-source.zip"
+          file "$RUNNER_TEMP/SplitMe-Modern-source.zip"
 
       - name: Extract ZIP
+        shell: bash
         run: |
+          set -euo pipefail
           mkdir -p extracted
-          unzip -o SplitMe-Modern-source.zip -d extracted
+          unzip -o "$RUNNER_TEMP/SplitMe-Modern-source.zip" -d extracted
+          test -n "$(find extracted -mindepth 1 -print -quit)"
 
       - name: Commit extracted files
+        shell: bash
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add extracted
-          git commit -m "Extract SplitMe source ZIP" || echo "No changes to commit"
-          git push
+          if git diff --cached --quiet; then
+            echo "No extracted-file changes to commit."
+          else
+            git commit -m "Extract SplitMe source ZIP"
+            git push
+          fi
