@@ -7,6 +7,10 @@ android {
     namespace 'io.github.hidroh.splitme'
     compileSdk 35
 
+    buildFeatures {
+        buildConfig true
+    }
+
     defaultConfig {
         applicationId 'io.github.hidroh.splitme'
         minSdk 28
