@@ -8,5 +8,5 @@
     <string name="summary">Trigger the system split-screen action</string>
     <string name="accessibility_required">Enable the SplitMe accessibility service to use the Quick Settings tile. The service is used only to request Android's split-screen toggle.</string>
     <string name="open_accessibility_settings">Open Accessibility Settings</string>
-    <string name="setup_instructions">Setup:\n1. Enable the SplitMe accessibility service below.\n2. Open Quick Settings by swiping down twice.\n3. Tap Edit, find Split Screen, and add the tile.\n4. Open an app, tap the Split Screen tile, then use your phone's system UI to choose the second app if prompted.\n\nAndroid/HyperOS decides whether the split-screen action is available. This app cannot force unsupported apps into split-screen.</string>
+    <string name="setup_instructions">Setup:&#10;1. Enable the SplitMe accessibility service below.&#10;2. Open Quick Settings by swiping down twice.&#10;3. Tap Edit, find Split Screen, and add the tile.&#10;4. Open an app, tap the Split Screen tile, then use your phone's system UI to choose the second app if prompted.&#10;&#10;Android/HyperOS decides whether the split-screen action is available. This app cannot force unsupported apps into split-screen.</string>
 </resources>
