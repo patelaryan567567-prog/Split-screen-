@@ -1,6 +1,7 @@
 package io.github.hidroh.splitme
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
@@ -37,7 +38,16 @@ class MainActivity : Activity() {
         val settingsButton = Button(this).apply {
             text = getString(R.string.open_accessibility_settings)
             setOnClickListener {
-                startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                AlertDialog.Builder(this@MainActivity)
+                    .setTitle("Accessibility service disclosure")
+                    .setMessage(
+                        "SplitMe uses Android's Accessibility Service only to request the system split-screen toggle when you tap its Quick Settings tile. It does not read screen content, collect personal data, or send data to a server. You must enable the service yourself in Android Settings. You can cancel if you do not agree."
+                    )
+                    .setNegativeButton("Cancel", null)
+                    .setPositiveButton("Continue to Settings") { _, _ ->
+                        startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                    }
+                    .show()
             }
         }
         layout.addView(title)
