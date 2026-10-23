@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.widget.Toast
+import android.os.Build
 import android.view.accessibility.AccessibilityEvent
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 
@@ -14,9 +15,8 @@ class SplitToggleService : AccessibilityService() {
     get() = LocalBroadcastManager.getInstance(this)
   private val receiver = object : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-      val actionAvailable = getSystemActions().any {
-        it.id == GLOBAL_ACTION_TOGGLE_SPLIT_SCREEN
-      }
+      val actionAvailable = Build.VERSION.SDK_INT < Build.VERSION_CODES.R ||
+          getSystemActions().any { it.id == GLOBAL_ACTION_TOGGLE_SPLIT_SCREEN }
       if (!actionAvailable) {
         Toast.makeText(
             this@SplitToggleService,
