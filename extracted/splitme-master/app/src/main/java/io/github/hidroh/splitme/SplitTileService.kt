@@ -7,6 +7,7 @@ import android.content.Intent.*
 import android.content.res.Configuration
 import android.content.res.Configuration.ORIENTATION_LANDSCAPE
 import android.graphics.drawable.Icon
+import android.provider.Settings
 import android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS
 import android.service.quicksettings.Tile.STATE_ACTIVE
 import android.service.quicksettings.Tile.STATE_INACTIVE
@@ -83,11 +84,30 @@ class SplitTileService : TileService() {
   }
 
   private fun enabled(): Boolean {
+    val expected = ComponentName(this, SplitToggleService::class.java)
+
+    // Settings.Secure is the canonical enabled-service registry. OEMs can expose
+    // AccessibilityServiceInfo.id in different flattened forms, so do not rely
+    // only on a single string representation from getEnabledAccessibilityServiceList().
+    val enabledServices = Settings.Secure.getString(
+        contentResolver,
+        Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+    ).orEmpty()
+
+    val settingMatches = enabledServices.split(':').any { id ->
+      ComponentName.unflattenFromString(id)?.let {
+        it.packageName == expected.packageName && it.className == expected.className
+      } ?: (id == expected.flattenToString() || id == expected.flattenToShortString())
+    }
+    if (settingMatches) return true
+
     val manager = getSystemService(ACCESSIBILITY_SERVICE) as AccessibilityManager
-    if (!manager.isEnabled) return false
-    val serviceName = ComponentName(this, SplitToggleService::class.java).flattenToString()
     return manager.getEnabledAccessibilityServiceList(FEEDBACK_GENERIC).any { info ->
-      info.id == serviceName
+      val actual = ComponentName.unflattenFromString(info.id)
+      actual?.let {
+        it.packageName == expected.packageName && it.className == expected.className
+      } == true || info.id == expected.flattenToString() ||
+          info.id == expected.flattenToShortString()
     }
   }
 
