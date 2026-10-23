@@ -43,7 +43,8 @@ class SplitTileService : TileService() {
       // on an intermediate activity + LocalBroadcastManager delivery.
       try {
         startService(Intent(this, SplitToggleService::class.java).setAction(ACTION_TOGGLE_SPLIT_SCREEN))
-        updateTileState(!isActive)
+        // Do not mark the tile active optimistically. Its state is refreshed
+        // from Activity.isInMultiWindowMode when the tile starts listening.
       } catch (_: Exception) {
         android.widget.Toast.makeText(
             this,
