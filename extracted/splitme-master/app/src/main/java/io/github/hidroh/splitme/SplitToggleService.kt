@@ -44,6 +44,9 @@ class SplitToggleService : AccessibilityService() {
             R.string.split_screen_toggle_failed,
             Toast.LENGTH_LONG
         ).show()
+      } else {
+        // Android accepted the request; the Quick Settings tile must not
+        // infer split-screen state from this return value.
       }
     } else {
       Toast.makeText(
