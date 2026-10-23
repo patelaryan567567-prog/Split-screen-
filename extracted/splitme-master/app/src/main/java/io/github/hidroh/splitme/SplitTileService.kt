@@ -37,7 +37,6 @@ class SplitTileService : TileService() {
 
   override fun onClick() {
     if (enabled()) {
-      updateTileState(!isActive)
       toggleAndCollapse()
     } else {
       prompt()
@@ -50,9 +49,17 @@ class SplitTileService : TileService() {
   }
 
   private fun toggleAndCollapse() {
-    startActivityAndCollapse(Intent(this, InvisibleActivity::class.java)
-        .setAction(ACTION_TOGGLE_SPLIT_SCREEN)
-        .setFlags(FLAG_ACTIVITY_NEW_TASK))
+    try {
+      startActivityAndCollapse(Intent(this, InvisibleActivity::class.java)
+          .setAction(ACTION_TOGGLE_SPLIT_SCREEN)
+          .addFlags(FLAG_ACTIVITY_NEW_TASK))
+    } catch (exception: RuntimeException) {
+      android.widget.Toast.makeText(
+          this,
+          R.string.split_toggle_launch_error,
+          android.widget.Toast.LENGTH_LONG
+      ).show()
+    }
   }
 
   private fun updateTileState(active: Boolean) {
@@ -66,18 +73,22 @@ class SplitTileService : TileService() {
   }
 
   private fun checkSplitScreen() {
-    startActivity(Intent(this, InvisibleActivity::class.java)
-        .setAction(ACTION_CHECK_SPLIT_SCREEN)
-        .setFlags(FLAG_ACTIVITY_LAUNCH_ADJACENT or FLAG_ACTIVITY_NEW_TASK))
+    try {
+      startActivity(Intent(this, InvisibleActivity::class.java)
+          .setAction(ACTION_CHECK_SPLIT_SCREEN)
+          .addFlags(FLAG_ACTIVITY_LAUNCH_ADJACENT or FLAG_ACTIVITY_NEW_TASK))
+    } catch (_: RuntimeException) {
+      // The tile can still be used if the launcher disallows this state check.
+    }
   }
 
   private fun enabled(): Boolean {
     val manager = getSystemService(ACCESSIBILITY_SERVICE) as AccessibilityManager
     if (!manager.isEnabled) return false
-    val serviceId = ComponentName(this, SplitToggleService::class.java).flattenToShortString()
-    manager.getEnabledAccessibilityServiceList(FEEDBACK_GENERIC)
-        .forEach { if (it.id == serviceId) return true }
-    return false
+    val serviceName = ComponentName(this, SplitToggleService::class.java).flattenToString()
+    return manager.getEnabledAccessibilityServiceList(FEEDBACK_GENERIC).any { info ->
+      info.id == serviceName
+    }
   }
 
   private fun prompt() {
