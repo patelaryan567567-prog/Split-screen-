@@ -1,6 +1,6 @@
 package io.github.hidroh.splitme
 
-import android.accessibilityservice.AccessibilityServiceInfo.FEEDBACK_GENERIC
+import android.accessibilityservice.AccessibilityServiceInfo.FEEDBACK_ALL_MASK
 import android.app.AlertDialog
 import android.content.*
 import android.content.Intent.*
@@ -38,7 +38,19 @@ class SplitTileService : TileService() {
 
   override fun onClick() {
     if (enabled()) {
-      toggleAndCollapse()
+      // Send the action directly to the already-enabled AccessibilityService.
+      // This mirrors the working QuickTiles implementation and avoids depending
+      // on an intermediate activity + LocalBroadcastManager delivery.
+      try {
+        startService(Intent(this, SplitToggleService::class.java).setAction(ACTION_TOGGLE_SPLIT_SCREEN))
+        updateTileState(!isActive)
+      } catch (_: Exception) {
+        android.widget.Toast.makeText(
+            this,
+            R.string.split_toggle_launch_error,
+            android.widget.Toast.LENGTH_LONG
+        ).show()
+      }
     } else {
       prompt()
     }
@@ -47,20 +59,6 @@ class SplitTileService : TileService() {
   override fun onConfigurationChanged(newConfig: Configuration) {
     updateIcon(newConfig)
     updateTileState(isActive)
-  }
-
-  private fun toggleAndCollapse() {
-    try {
-      startActivityAndCollapse(Intent(this, InvisibleActivity::class.java)
-          .setAction(ACTION_TOGGLE_SPLIT_SCREEN)
-          .addFlags(FLAG_ACTIVITY_NEW_TASK))
-    } catch (exception: RuntimeException) {
-      android.widget.Toast.makeText(
-          this,
-          R.string.split_toggle_launch_error,
-          android.widget.Toast.LENGTH_LONG
-      ).show()
-    }
   }
 
   private fun updateTileState(active: Boolean) {
@@ -85,30 +83,30 @@ class SplitTileService : TileService() {
 
   private fun enabled(): Boolean {
     val expected = ComponentName(this, SplitToggleService::class.java)
+    val manager = getSystemService(ACCESSIBILITY_SERVICE) as AccessibilityManager
 
-    // Settings.Secure is the canonical enabled-service registry. OEMs can expose
-    // AccessibilityServiceInfo.id in different flattened forms, so do not rely
-    // only on a single string representation from getEnabledAccessibilityServiceList().
+    // Resolve the actual ServiceInfo instead of relying on AccessibilityServiceInfo.id,
+    // whose formatting can differ between Android versions and OEM builds.
+    if (manager.getEnabledAccessibilityServiceList(FEEDBACK_ALL_MASK).any { info ->
+          val serviceInfo = info.resolveInfo?.serviceInfo
+          serviceInfo?.packageName == expected.packageName &&
+              serviceInfo.name == expected.className
+        }) {
+      return true
+    }
+
+    // Fallback for OEM builds that omit the service from AccessibilityManager's list.
     val enabledServices = Settings.Secure.getString(
         contentResolver,
         Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
     ).orEmpty()
-
     val settingMatches = enabledServices.split(':').any { id ->
-      ComponentName.unflattenFromString(id)?.let {
-        it.packageName == expected.packageName && it.className == expected.className
-      } ?: (id == expected.flattenToString() || id == expected.flattenToShortString())
+      val component = ComponentName.unflattenFromString(id)
+      component?.packageName == expected.packageName &&
+          (component.className == expected.className ||
+              component.className == ".${SplitToggleService::class.java.simpleName}")
     }
-    if (settingMatches) return true
-
-    val manager = getSystemService(ACCESSIBILITY_SERVICE) as AccessibilityManager
-    return manager.getEnabledAccessibilityServiceList(FEEDBACK_GENERIC).any { info ->
-      val actual = ComponentName.unflattenFromString(info.id)
-      actual?.let {
-        it.packageName == expected.packageName && it.className == expected.className
-      } == true || info.id == expected.flattenToString() ||
-          info.id == expected.flattenToShortString()
-    }
+    return manager.isEnabled && settingMatches
   }
 
   private fun prompt() {
